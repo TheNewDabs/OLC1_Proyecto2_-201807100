@@ -20,21 +20,65 @@ class Error {
 }
 
 class Nodo{
-    constructor(Nombre){
+
+    constructor(Nombre, Traduccion){
         this.Nombre = Nombre;
         this.Hijos = Array();
         this.Traducir = true;
+        this.Traduccion = Traduccion;
     }
 
     NoTraducir(){
         this.Traducir = false;
         for(var i=0; i<this.Hijos.length ;i++){
-            Hijos[i].NoTraducir();            
+            this.Hijos[i].NoTraducir();            
         }
     }
 
     Agregar(Nuevo){
         this.Hijos.push(Nuevo);
+    }
+
+    Mostrar(Cadena){
+        for(var i=0; i<this.Hijos.length ;i++){
+            if(this.Hijos[i] != null){
+                console.log(this.Hijos[i].Traduccion + ";" + Cadena + ";" + i + ";" + this.Hijos[i].Nombre + ";" + this.Traducir);
+                this.Hijos[i].Mostrar(Cadena + ";" + i);
+            }
+        }
+    }
+
+    TraducirNodo(){
+        if(this.Traducir){
+            if(this.Traduccion == ":"){
+                Identado = Identado+1;
+                return this.Traduccion + "\n" + this.Identar(Identado);
+            }else if(this.Traduccion == "?"){
+                Identado = Identado-1;
+                return "\n" + this.Identar(Identado);
+            }else if(this.Traduccion == ";"){
+                return this.Traduccion + "\n" + this.Identar(Identado); 
+            }else if(this.Traduccion != ""){
+                return this.Traduccion;
+            }
+            this.Trad = "";
+            for(var i=0; i<this.Hijos.length ;i++){
+                if(this.Hijos[i] != null){
+                    this.Trad += this.Hijos[i].TraducirNodo(Identado);
+                }
+            }
+            return this.Trad;
+        }else{
+            return "";
+        }
+    }
+
+    Identar(){
+        this.Sangrado = "";
+        for(var i=0; i<Identado ;i++){
+            this.Sangrado+="\t"
+        }
+        return this.Sangrado
     }
 }
 
@@ -42,20 +86,42 @@ let Tokens = Array()
 let Errores = Array()
 let Raiz = null;
 let ContT = 0;
+let Identado = 0;
 
 function Cod(){
     return `
     public class Hola{
-        int x = Quetal(3, 9+3, -2, Hola(x+(3*3)));     
+        int x= 3+3/5*(3+3);
+        
         public static void main(String[] args){
-            int t,y,u;
+            if(X==Y){
+                String A = "xD";
+                char B = "B";
+                double C = 1.1;
+            }
+        }
+
+        public int Quetal(String A){
+
         }
     }
 
-    public interface Hola2{
-        int x = Quetal(3, 9+3, -2, Hola(x+(3*3)));     
-        int x,y,z;
-        boolean XD = false;
+    public interface IdentificadorInterfaz {
+        int x= 3+3/5*(3+3);
+        public int Hola();
+        public void Espera();
+    }
+
+    public interface IdentificadorInterfaz {
+        int x= 3+3/5*(3+3);
+        public int Hola();
+        public void Espera();
+    }
+
+    public interface IdentificadorInterfaz {
+        int x= 3+3/5*(3+3);
+        public int Hola();
+        public void Espera();
     }
 `;
 }
@@ -472,16 +538,25 @@ function AnalizadorLexico(Codigo){
                 break;
         }
     }
-    for(var i=0; i<Tokens.length ;i++){
-        console.log(i + " " + Tokens[i].Tipo + " " + Tokens[i].Lexema + " " + Tokens[i].Fila + " " + Tokens[i].Columna)
-    }
+}
+
+function NuevoNodo(Actual, Nombre){
+    var Nuevo = new Nodo(Nombre, "")
+    Actual.Agregar(Nuevo);
+    return Nuevo;
+}
+
+function NuevoNodoT(Actual, Nombre, Traduccion){
+    var Nuevo = new Nodo(Nombre, Traduccion)
+    Actual.Agregar(Nuevo);
+    return Nuevo;
 }
 
 function AnalizadorSintactico(){
+    Identado = 0;
+    Raiz = new Nodo("Raiz", "");
     if(ContT < Tokens.length){
-        Raiz = new Nodo("Raiz");
-        Nuevo = new Nodo("Lista");
-        Lista(Nuevo);
+        Lista(NuevoNodo(Raiz, "Lista"));
     }
     console.log("Lista Errores:");
     if(Errores.length == 0){
@@ -490,92 +565,91 @@ function AnalizadorSintactico(){
     for(var i=0; i<Errores.length ;i++){
         console.log(i + " " + Errores[i].Tipo + ", " + Errores[i].Lexema + ", " + Errores[i].Descripcion + ", " + Errores[i].Fila + ", " + Errores[i].Columna);
     }
+    console.log(Raiz.TraducirNodo());
 }
 
 function Lista(Actual){
-    console.log("Lista");
-    QuitarComentarios()
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_public"){
-            Proximo = new Nodo("Selector");
-            Parea("Reservada_public", "", Proximo);
+            Nuevo = NuevoNodo(Actual, "Selector");
+            Parea("Reservada_public", "", Nuevo, "");
             Selector(Nuevo);
         }else{
-            ErrorSintactico("palabra reservada \"Public\"", "Simbolo_Cerrar_LLaves")
+            ErrorSintactico("palabra reservada \"Public\"", "Simbolo_Cerrar_LLaves", new Nodo("Vacio", ""))
         }
-        Nuevo = new Nodo("Lista")
-        Actual.Agregar(Nuevo);
-        Lista(Nuevo);
+        Lista(NuevoNodo(Actual, "Lista"));
     }
 }
 
-function Selector(Nuevo){
-    Nuevo = new Nodo(Actual);
-    Actual.Agregar(Nuevo);
-    console.log("Selector");
-    QuitarComentarios()
+function Selector(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_class"){
-            Parea("Reservada_class", "")
-            if(Parea("ID", "Simbolo_Cerrar_LLaves")){
-                if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                    ListaMetodos();
-                    if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
+            Parea("Reservada_class", "", Actual, "class ")
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Cerrar_LLaves", Actual, Tokens[ContT].Tipo)){
+                if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                    Nuevo = NuevoNodo(Actual, "ListaMetodos");
+                    ListaMetodos(Nuevo);
+                    if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
                         return;
                     }
                 }
             }
+            return;
         }else if(Tokens[ContT].Tipo == "Reservada_interface"){
-            Parea("Reservada_interface", "")
-            if(Parea("ID", "Simbolo_Cerrar_LLaves")){
-                if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                    ListaDefiniones();
-                    if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
+            Parea("Reservada_interface", "", Actual, "class ")
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Cerrar_LLaves", Actual, Tokens[ContT].Tipo)){
+                if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                    ListaDefiniones(NuevoNodo(Actual, "ListaDefiniciones"));
+                    if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
                         return;
                     }
                 }
             }
+            return;
         }
     }
-    ErrorSintactico("palabra reservada \"class\" o \"interface\"", "Simbolo_Cerrar_LLaves")
+    ErrorSintactico("palabra reservada \"class\" o \"interface\"", "Simbolo_Cerrar_LLaves", Actual)
 }
 
-function ListaMetodos(){
-    console.log("ListaMetodos");
-    QuitarComentarios()
+function ListaMetodos(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_public"){
-            Parea("Reservada_public","");
-            SelectorMetodo();
-            ListaMetodos();
+            Nuevo = NuevoNodo(Actual, "SelectorMetodo");
+            Parea("Reservada_public","", Nuevo, "");
+            SelectorMetodo(Nuevo);
+            ListaMetodos(NuevoNodo(Actual, "ListaMetodos"));
         }else if(Tokens[ContT].Tipo == "Reservada_int" ||Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
-            Declaracion()
-            ListaMetodos();
+            Declaracion(NuevoNodo(Actual, "Declaracion"))
+            ListaMetodos(NuevoNodo(Actual, "ListaMetodos"));
         }else if(Tokens[ContT].Tipo != "Simbolo_Cerrar_LLaves"){
-            ErrorSintactico("Inicio de instruccion valida", "Ambos")
-            ListaMetodos();
+            ErrorSintactico("Inicio de instruccion valida", "Ambos", Actual)
+            ListaMetodos(NuevoNodo(Actual, "ListaMetodos"));
         }
     }
 }
 
-function SelectorMetodo(){
-    console.log("SelectorMetodo");
-    QuitarComentarios();
+function SelectorMetodo(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_static"){
-            Parea("Reservada_static", "Simbolo_Cerrar_LLaves");
-            if(Parea("Reservada_void", "Simbolo_Cerrar_LLaves")){
-                if(Parea("Reservada_main", "Simbolo_Cerrar_LLaves")){
-                    if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves")){
-                        if(Parea("Reservada_String", "Simbolo_Cerrar_LLaves")){
-                            if(Parea("Simbolo_Abrir_Corchete", "Simbolo_Cerrar_LLaves")){
-                                if(Parea("Simbolo_Cerrar_Corchete", "Simbolo_Cerrar_LLaves")){
-                                    if(Parea("Reservada_args", "Simbolo_Cerrar_LLaves")){
-                                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves")){
-                                            if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                                                ListaInstrucciones();
-                                                if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
-                                                    //Traducir
+            Parea("Reservada_static", "Simbolo_Cerrar_LLaves", Actual, "");
+            if(Parea("Reservada_void", "Simbolo_Cerrar_LLaves", Actual, "def ")){
+                if(Parea("Reservada_main", "Simbolo_Cerrar_LLaves", Actual, "main")){
+                    if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "(")){
+                        if(Parea("Reservada_String", "Simbolo_Cerrar_LLaves", Actual, "")){
+                            if(Parea("Simbolo_Abrir_Corchete", "Simbolo_Cerrar_LLaves", Actual, "")){
+                                if(Parea("Simbolo_Cerrar_Corchete", "Simbolo_Cerrar_LLaves", Actual, "")){
+                                    if(Parea("Reservada_args", "Simbolo_Cerrar_LLaves", Actual, "")){
+                                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves", Actual, ")")){
+                                            if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                                                ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
+                                                if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
+                                                    return;
                                                 }
                                             }
                                         }
@@ -586,55 +660,58 @@ function SelectorMetodo(){
                     }
                 }   
             }
+            return
         }else if(Tokens[ContT].Tipo == "Reservada_void"){
-            Parea("Reservada_void", "Simbolo_Cerrar_LLaves");
-            if(Parea("ID", "Simbolo_Cerrar_LLaves")){
-                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves")){
-                    if(ListaParametros()){
-                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves")){
-                            if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                                ListaInstrucciones();
-                                if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
-                                    //Traducir
+            Parea("Reservada_void", "Simbolo_Cerrar_LLaves", Actual, "def ");
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Cerrar_LLaves", Actual, Tokens[ContT].Lexema)){
+                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "(")){
+                    if(ListaParametros(NuevoNodo(Actual, "ListaParametros"))){
+                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves", Actual, ")")){
+                            if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                                ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
+                                if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
+                                    return;
                                 }
                             }
                         }
                     }
                 }
             }
+            return
         }else if(Tokens[ContT].Tipo == "Reservada_int" || Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
-            TiposVariables("Simbolo_Cerrar_LLaves");
-            if(Parea("ID", "Simbolo_Cerrar_LLaves")){
-                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves")){
-                    if(ListaParametros()){
-                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves")){
-                            if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                                ListaInstrucciones();
-                                if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
-                                    //Traducir
+            TiposVariables("Simbolo_Cerrar_LLaves", NuevoNodo(Actual, "TiposVariables"));
+            Actual.Hijos[1].Hijos[0].Traduccion = "def ";
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Cerrar_LLaves", Actual, Tokens[ContT].Lexema)){
+                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "(")){
+                    if(ListaParametros(NuevoNodo(Actual, "ListaParametros"))){
+                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves", Actual, ")")){
+                            if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                                ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
+                                if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
+                                    return
                                 }
                             }
                         }
                     }
                 }
             }
-        }else{
-            ErrorSintactico("palabra reservada \"static\", \"void\" o un indicador de tipo de dato", "Simbolo_Cerrar_LLaves")
+            return
         }
-    }else{
-        ErrorSintactico("palabra reservada \"static\", \"void\" o un indicador de tipo de dato", "Simbolo_Cerrar_LLaves")
     }
+    ErrorSintactico("palabra reservada \"static\", \"void\" o un indicador de tipo de dato", "Simbolo_Cerrar_LLaves", Actual)
+    
 }
 
-function ListaParametros(){
-    console.log("ListaParametros");
-    QuitarComentarios();
+function ListaParametros(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_int" || Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
-            TiposVariables("Simbolo_Cerrar_LLaves");
-            if(Parea("ID", "Simbolo_Cerrar_LLaves")){
-                if(ListaParametrosP()){
-                    //Traduccion
+            TiposVariables("Simbolo_Cerrar_LLaves", NuevoNodo(Actual, "TiposVariables"));
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Cerrar_LLaves", Actual, Tokens[ContT].Lexema)){
+                if(ListaParametrosP(NuevoNodo(Actual, "ListaParametrosP"))){
                     return true;
                 }
             }
@@ -644,16 +721,15 @@ function ListaParametros(){
     return true;
 }
 
-function ListaParametrosP(){
-    console.log("ListaParametrosP");
-    QuitarComentarios();
+function ListaParametrosP(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
-            Parea("Simbolo_Coma", "");
-            if(TiposVariables("Simbolo_Cerrar_LLaves")){
-                if(Parea("ID", "Simbolo_Cerrar_LLaves")){
-                    if(ListaParametrosP()){
-                        //Traduccion
+            Parea("Simbolo_Coma", "", Actual, ", ");
+            if(TiposVariables("Simbolo_Cerrar_LLaves", NuevoNodo(Actual, "TiposVariables"))){
+                QuitarComentarios(Actual);
+                if(Parea("ID", "Simbolo_Cerrar_LLaves", Actual, Tokens[ContT].Lexema)){
+                    if(ListaParametrosP(NuevoNodo(Actual, "ListaParametrosP"))){
                         return true;
                     }
                 }
@@ -664,186 +740,180 @@ function ListaParametrosP(){
     return true;
 }
 
-function TiposVariables(Panico){
-    console.log("TiposVarables");
-    QuitarComentarios();
+function TiposVariables(Panico, Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_int"){
-            Parea("Reservada_int", Panico);
+            Parea("Reservada_int", Panico, Actual, "var ");
             return true;
         }else if(Tokens[ContT].Tipo == "Reservada_double"){
-            Parea("Reservada_double", Panico);
+            Parea("Reservada_double", Panico, Actual, "var ");
             return true;
         }else if(Tokens[ContT].Tipo == "Reservada_char"){
-            Parea("Reservada_char", Panico);
+            Parea("Reservada_char", Panico, Actual, "var ");
             return true;
         }else if(Tokens[ContT].Tipo == "Reservada_String"){
-            Parea("Reservada_String", Panico);
+            Parea("Reservada_String", Panico, Actual, "var ");
             return true;
         }else if(Tokens[ContT].Tipo == "Reservada_boolean"){
-            Parea("Reservada_boolean", Panico);
+            Parea("Reservada_boolean", Panico, Actual, "var ");
             return true;
         }
     }
-    ErrorSintactico("indicador de tipo de dato", Panico)
+    ErrorSintactico("indicador de tipo de dato", Panico, Actual)
     return false;
 }
 
-function ListaInstrucciones(){
-    console.log("ListaInstrucciones");
-    QuitarComentarios();
+function ListaInstrucciones(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_int" || Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
-            Declaracion();
-            ListaInstrucciones();
+            Declaracion(NuevoNodo(Actual, "Declaracion"));
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "ID"){
-            Parea("ID", "");
-            SelectorID();
-            ListaInstrucciones();
+            Nuevo = NuevoNodo(Actual, "SelectorID");
+            Parea("ID", "", NuevoTokens[ContT].Lexema);
+            SelectorID(Nuevo);
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_return"){
-            Parea("Reservada_return", "");
-            if(ValoresReturn()){
-                //Traduccion
-            }
-            ListaInstrucciones();
+            Nuevo = NuevoNodo(Actual, "ValoresReturn");
+            Parea("Reservada_return", "", Nuevo, "return");
+            ValoresReturn(Nuevo);
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_continue"){
-            Parea("Reservada_return", "");
-            if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                //Traduccion
-            }
-            ListaInstrucciones();
+            Nuevo = NuevoNodo(Actual, "Continuar");
+            Parea("Reservada_continue", "", Nuevo, "continue");
+            Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Nuevo, ";")
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_break"){
-            Parea("Reservada_break", "");
-            if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                //Traduccion
-            }
-            ListaInstrucciones();
+            Nuevo = NuevoNodo(Actual, "Break");
+            Parea("Reservada_break", "", Nuevo, "break");
+            Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Nuevo, ";")
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_System"){
-            Parea("Reservada_System", "");
-            if(Parea("Simbolo_Punto", "Simbolo_Punto_Y_Coma")){
-                if(Parea("Reservada_out", "Simbolo_Punto_Y_Coma")){
-                    if(Parea("Simbolo_Punto", "Simbolo_Punto_Y_Coma")){
-                        Prints();
+            Nuevo = NuevoNodo(Actual, "Prints");
+            Parea("Reservada_System", "", Nuevo, "");
+            if(Parea("Simbolo_Punto", "Simbolo_Punto_Y_Coma", Nuevo, "")){
+                if(Parea("Reservada_out", "Simbolo_Punto_Y_Coma", Nuevo, "")){
+                    if(Parea("Simbolo_Punto", "Simbolo_Punto_Y_Coma", Nuevo, "")){
+                        Prints(Nuevo);
                     }
                 }
             }
-            ListaInstrucciones();
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_if"){
-            SentenciaIF();
-            ListaInstrucciones();
+            SentenciaIF(NuevoNodo(Actual, "SentenciaIF"), "if ");
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_for"){
-            SentenciaFor();
-            ListaInstrucciones();
+            SentenciaFor(NuevoNodo(Actual, "SentenciaFor"));
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_while"){
-            SentenciaWhile();
-            ListaInstrucciones();
+            SentenciaWhile(NuevoNodo(Actual, "SentenciaWhile"));
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_do"){
-            SentenciaDo();
-            ListaInstrucciones();
+            SentenciaDo(NuevoNodo(Actual, "Do"));
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo != "Simbolo_Cerrar_LLaves"){
-            ErrorSintactico("Inicio de instruccion valida", "Ambos")
-            ListaInstrucciones();
+            ErrorSintactico("Inicio de instruccion valida", "Ambos", Actual)
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }
     }
 }
 
-function Declaracion(){
-    console.log("Declaracion");
-    QuitarComentarios();
+function Declaracion(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
-        if(TiposVariables("Simbolo_Punto_Y_Coma")){
-            if(Parea("ID", "Simbolo_Punto_Y_Coma")){
-                if(DeclaracionP()){
-                    if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                        //Traduccion
+        if(TiposVariables("Simbolo_Punto_Y_Coma", NuevoNodo(Actual, "TiposVariables"))){
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Punto_Y_Coma", Actual, Tokens[ContT].Lexema)){
+                if(DeclaracionP(NuevoNodo(Actual, "DeclaracionP"))){
+                    if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
                         return true;
                     }
                 }
             }
         }
-        return false
     }
+    return false
 }
 
-function DeclaracionP(){
-    console.log("DeclaracionP");
-    QuitarComentarios();
+function DeclaracionP(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
-            Parea("Simbolo_Coma", "");
-            if(Parea("ID", "Simbolo_Punto_Y_Coma")){
-                if(DeclaracionP()){
-                    //Traduccion
+            Parea("Simbolo_Coma", "", Actual, ",");
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Punto_Y_Coma", Actual, Tokens[ContT].Lexema)){
+                if(DeclaracionP(NuevoNodo(Actual, "DeclaracionP"))){
                     return true;
                 }
             }
-            return false;
         }else if(Tokens[ContT].Tipo == "Simbolo_Igual"){
-            Parea("Simbolo_Igual", "");
-            if(Expresion()){
-                if(DeclaracionBP()){
-                    //Traduccion
+            Parea("Simbolo_Igual", "", Actual, " = ");
+            if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                if(DeclaracionBP(NuevoNodo(Actual, "DeclaracionBP"))){
                     return true;
                 }
             }else{
-                ErrorSintactico("valor valido", "Ambos");
+                ErrorSintactico("valor valido", "Ambos", Actual);
+                return false;
             }
-            return false;
         }
-        return true;
     }
+    return true;
 }
 
-function DeclaracionBP(){
-    console.log("DeclaracionP");
-    QuitarComentarios();
+function DeclaracionBP(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
-            Parea("Simbolo_Coma", "Simbolo_Punto_Y_Coma");
-            if(Parea("ID", "Simbolo_Punto_Y_Coma")){
-                if(DeclaracionP()){
-                    //Traduccion
+            Parea("Simbolo_Coma", "Simbolo_Punto_Y_Coma", Actual, ",");
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Punto_Y_Coma", Actual, Tokens[ContT].Lexema)){
+                if(DeclaracionP(NuevoNodo(Actual, "DeclaracionP"))){
                     return true;
                 }
             }
             return false;
         }
-        return true;
     }
+    return true;
 }
 
-function Expresion(){
-    console.log("Expresion");
-    QuitarComentarios();
+function Expresion(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Mas"){
-            Parea("Simbolo_Mas", "");
+            Parea("Simbolo_Mas", "", Actual, "+");
         }else if(Tokens[ContT].Tipo == "Simbolo_Menos"){
-            Parea("Simbolo_Menos", "");
+            Parea("Simbolo_Menos", "", Actual, "-");
         }
-        return Exp();
+        return Exp(NuevoNodo(Actual, "Exp"));
     }
+    return false;
 }
 
-function Exp(){
-    console.log("Exp");
-    QuitarComentarios();
+function Exp(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         switch(Tokens[ContT].Tipo){
             case "Entero":
             case "Flotante":
             case "Cadena":
             case "Caracter":
+                Parea(Tokens[ContT].Tipo, "", Actual, Tokens[ContT].Lexema);
+                return Operador(NuevoNodo(Actual, "Operador"));
             case "Reservada_true":
+                Parea(Tokens[ContT].Tipo, "", Actual, "True");
+                return Operador(NuevoNodo(Actual, "Operador"));
             case "Reservada_false":
-                Parea(Tokens[ContT].Tipo, "");
-                return Operador();
+                Parea(Tokens[ContT].Tipo, "", Actual, "False");
+                return Operador(NuevoNodo(Actual, "Operador"));
             case "Simbolo_Abrir_Parentesis":
-                Parea(Tokens[ContT].Tipo, "");
-                console.log("CDCDCDCDCCDCDC")
-                if(Expresion()){
-                    if (Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma")){
-                        return Operador();
+                Parea(Tokens[ContT].Tipo, "", Actual, "(");
+                if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                    if (Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, ")")){
+                        return Operador(NuevoNodo(Actual, "Operador"));
                     }else{
                         ContT=ContT-1
                         return true;
@@ -851,28 +921,26 @@ function Exp(){
                 }
                 break;
             case "Simbolo_Negación":
-                Parea(Tokens[ContT].Tipo, "");
-                if(Exp()){
-                    return Operador();
+                Parea(Tokens[ContT].Tipo, "", Actual, "not ");
+                if(Exp(NuevoNodo(Actual, "Exp"))){
+                    return Operador(NuevoNodo(Actual, "Operador"));
                 }
                 break;
             case "ID":  
-                Parea(Tokens[ContT].Tipo, "");
-                if(PosibilidadMetodo()){
-                    return Operador();
+                Parea(Tokens[ContT].Tipo, "", Actual, Tokens[ContT].Lexema);
+                if(PosibilidadMetodo(NuevoNodo(Actual, "PosibilidadMetodo"))){
+                    return Operador(NuevoNodo(Actual, "Operador"));
                 }else{
                     ContT=ContT-1
                     return true;
                 }
-                break;
         }
     }
     return false;
 }
 
-function Operador(){
-    console.log("Operador");
-    QuitarComentarios();
+function Operador(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         switch(Tokens[ContT].Tipo){
             case "Simbolo_Mas":
@@ -885,28 +953,35 @@ function Operador(){
             case "Simbolo_Menor":
             case "Simbolo_Menor_Igual":
             case "Simbolo_Distinto":
+                Parea(Tokens[ContT].Tipo, "", Actual," " + Tokens[ContT].Lexema + " ");
+                return Exp(NuevoNodo(Actual, "Exp"));
             case "Simbolo_AND":
+                Parea(Tokens[ContT].Tipo, "", Actual," " + "and" + " ");
+                return Exp(NuevoNodo(Actual, "Exp"));
             case "Simbolo_OR":
+                Parea(Tokens[ContT].Tipo, "", Actual," " + "or" + " ");
+                return Exp(NuevoNodo(Actual, "Exp"));
             case "Simbolo_Xor":
-                Parea(Tokens[ContT].Tipo, "");
-                return Exp();
+                Parea(Tokens[ContT].Tipo, "", Actual," " + "xor" + " ");
+                return Exp(NuevoNodo(Actual, "Exp"));
             case "Simbolo_Adicion":
+                Parea(Tokens[ContT].Tipo, "", Actual, " + 1");
+                return Operador(NuevoNodo(Actual, "Operador"));
             case "Simbolo_Sustraccion":
-                Parea(Tokens[ContT].Tipo, "");
-                return Operador();
+                Parea(Tokens[ContT].Tipo, "", Actual, "-  1");
+                return Operador(NuevoNodo(Actual, "Operador"));
         }
     }
     return true;
 }
 
-function PosibilidadMetodo(){
-    console.log("PosibilidadMetodo");
-    QuitarComentarios();
+function PosibilidadMetodo(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Abrir_Parentesis"){
-            Parea("Simbolo_Abrir_Parentesis", "");
-            if(ListaValores()){
-                return Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma");
+            Parea("Simbolo_Abrir_Parentesis", "", Actual, "(");
+            if(ListaValores(NuevoNodo(Actual, "ListaValores"))){
+                return Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, ")");
             }
             return false;
         }
@@ -914,9 +989,8 @@ function PosibilidadMetodo(){
     return true;
 }
 
-function ListaValores(){
-    console.log("ListaValores");
-    QuitarComentarios();
+function ListaValores(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         switch(Tokens[ContT].Tipo){
             case "Entero":
@@ -930,8 +1004,8 @@ function ListaValores(){
             case "ID":
             case "Simbolo_Mas":
             case "Simbolo_Menos":
-                if(Expresion()){
-                    return ListaValoresP();
+                if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                    return ListaValoresP(NuevoNodo(Actual, "ListaValoresP"));
                 }
                 return false;
         }
@@ -939,14 +1013,13 @@ function ListaValores(){
     return true;
 }
 
-function ListaValoresP(){
-    console.log("ListaValores");
-    QuitarComentarios();
+function ListaValoresP(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
-            Parea("Simbolo_Coma", "");
-            if(Expresion()){
-                return ListaValoresP();
+            Parea("Simbolo_Coma", "", Actual, ", ");
+            if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                return ListaValoresP(NuevoNodo(Actual, "ListaValoresP"));
             }
             return false;
         }
@@ -954,167 +1027,163 @@ function ListaValoresP(){
     return true;
 }
 
-function SelectorID(){
-    console.log("SelectorID");
-    QuitarComentarios()
+function SelectorID(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Abrir_Parentesis"){
-            Parea("Simbolo_Abrir_Parentesis", "")
-            if(ListaValores()){
-                if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma")){
-                    if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                        //Traduccion
+            Parea("Simbolo_Abrir_Parentesis", "", Actual, "(")
+            if(ListaValores(NuevoNodo(Actual, "ListaValores"))){
+                if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, ")")){
+                    if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
+                        return
                     }
                 }
             }
+            return
         }else if(Tokens[ContT].Tipo == "Simbolo_Igual"){
-            Parea("Simbolo_Igual", "")
-            if(Expresion()){
-                if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                    //Traduccion
+            Parea("Simbolo_Igual", "", Actual, " = ")
+            if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
+                    return
                 }
             }else{
-                ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma");
+                ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma", Actual);
             }
-        } else{
-            ErrorSintactico("simbolo de abrir parentesis o simbolo igual", "Simbolo_Punto_Y_Coma")
+            return;
         }
-    }else{
-        ErrorSintactico("simbolo de abrir parentesis o simbolo igual", "Simbolo_Punto_Y_Coma")
     }
+    ErrorSintactico("simbolo de abrir parentesis o simbolo igual", "Simbolo_Punto_Y_Coma")
 }
 
-function ValoresReturn(){
-    console.log("ValoresReturn");
-    QuitarComentarios()
+function ValoresReturn(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo != "Simbolo_Punto_Y_Coma"){
-            if(Expresion()){
-                Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma");
+            Actual.Hijos[0].Traduccion = Actual.Hijos[0].Traduccion + " ";
+            if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";");
             }else{
-                ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma");
+                ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma", Actual);
             }
         }else{
-            Parea("Simbolo_Punto_Y_Coma", "");
+            Parea("Simbolo_Punto_Y_Coma", "", Actual, ";");
         }
     }
 }
 
-function Prints(){
-    console.log("Prints");
-    QuitarComentarios()
+function Prints(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_println"){
-            Parea("Reservada_println", "")
-            if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma")){
-                if(Expresion()){
-                    if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma")){
-                        if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
+            Parea("Reservada_println", "", Actual, "print")
+            if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma", Actual, "(")){
+                if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                    if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, ", end=\"\")")){
+                        if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
                             return true;
                         }
                     }
                 }else{
-                    ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma");
+                    ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma", Actual);
                 }
             }
         }else if(Tokens[ContT].Tipo == "Reservada_print"){
-            Parea("Reservada_print", "")
-            if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma")){
-                if(Expresion()){
-                    if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma")){
-                        if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
+            Parea("Reservada_print", "", Actual, "print")
+            if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma", Actual, "(")){
+                if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                    if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, ")")){
+                        if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
                             return true;
                         }
                     }
                 }else{
-                    ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma");
+                    ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma", Actual);
                 }
             }
         } else{
-            ErrorSintactico("simbolo de abrir parentesis o simbolo igual", "Simbolo_Punto_Y_Coma")
+            ErrorSintactico("Se esperaba palabra reservada \"print\" o \"println\" ", "Simbolo_Punto_Y_Coma", Actual)
         }
     }else{
-        ErrorSintactico("simbolo de abrir parentesis o simbolo igual", "Simbolo_Punto_Y_Coma")
+        ErrorSintactico("Se esperaba palabra reservada \"print\" o \"println\" ", "Simbolo_Punto_Y_Coma", Actual)
     }
     return false;
 }
 
-function SentenciaIF(){
-    console.log("SentenciaIF");
-    QuitarComentarios()
+function SentenciaIF(Actual, Traduccion){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
-        Parea("Reservada_if", "")
-        if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves")){
-            if(Expresion()){
-                if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves")){
-                    if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                        ListaInstrucciones();
-                        if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
-                            //Traduccion
-                            CaminosIF();
+        Parea("Reservada_if", "", Actual, Traduccion)
+        if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "")){
+            if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "")){
+                    if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                        ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
+                        if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
+                            CaminosIF(NuevoNodo(Actual, "CaminosIf"));
+                            return true;
                         }
                     }
                 }
             }else{
-                ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves");
+                ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves", Actual);
             }
         }
     }
     return false;
 }
 
-function CaminosIF(){
-    console.log("CaminosIF");
-    QuitarComentarios()
+function CaminosIF(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_else"){
-            Parea("Reservada_else", "")
-            OpcionElse();
+            Nuevo = NuevoNodo(Actual, "else");
+            Parea("Reservada_else", "", Nuevo, "")
+            OpcionElse(Nuevo);
         }
     }
     return true;
 }
 
-function OpcionElse(){
-    console.log("OpcionElse");
-    QuitarComentarios()
+function OpcionElse(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_if"){
-            SentenciaIF();
+            SentenciaIF(Actual, "elif ");
         }else if(Tokens[ContT].Tipo == "Simbolo_Abrir_LLaves"){
-            if(Parea("Simbolo_Abrir_LLaves", "")){
-                ListaInstrucciones();
-                Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")
+            if(Parea("Simbolo_Abrir_LLaves", "", Actual, "else:")){
+                ListaInstrucciones(NuevoNodo(Actual, "ListaIntrucciones"));
+                Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")
             }
         }
     }
     return false;
 }
 
-function SentenciaFor(){
-    console.log("SentenciaFor");
-    QuitarComentarios()
+function SentenciaFor(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
-        Parea("Reservada_for", "")
-        if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves")){
-            if(Declaracion()){
-                if(Expresion()){
-                    if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Cerrar_LLaves")){
-                        if(Expresion()){
-                            if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves")){
-                                if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                                    ListaInstrucciones();
-                                    if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
-                                        //Traduccion
+        Parea("Reservada_for", "", Actual, "for ")
+        if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "")){
+            if(Declaracion(NuevoNodo(Actual, "Declaracion"))){
+                Actual.Hijos[2].Hijos[0].NoTraducir();
+                Actual.Hijos[2].Hijos[Actual.Hijos[2].Hijos.length-1].Traduccion = " in range(";
+                if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                    if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Cerrar_LLaves", Actual, ",")){
+                        if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                            if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves", Actual, ")")){
+                                if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                                    ListaInstrucciones(NuevoNodo(Actual, "ListaIntrucciones"));
+                                    if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
+                                        return
                                     }
                                 }
                             }
                         }else{
-                            ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves");
+                            ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves", Actual);
                         }
                     }
                 }else{
-                    ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves");
+                    ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves". Actual);
                 }   
             }else{
                 while(ContT < Tokens.length && Tokens[ContT-1].Tipo != "Simbolo_Cerrar_LLaves"){
@@ -1126,47 +1195,45 @@ function SentenciaFor(){
     return false;
 }
 
-function SentenciaWhile(){
-    console.log("SentenciaWhile");
-    QuitarComentarios()
+function SentenciaWhile(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
-        Parea("Reservada_while", "")
-        if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves")){
-            if(Expresion()){
-                if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves")){
-                    if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-                        ListaInstrucciones();
-                        if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
-                            //Traduccion
+        Parea("Reservada_while", "", Actual, "while ")
+        if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "")){
+            if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Cerrar_LLaves", Actual, "")){
+                    if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+                        ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
+                        if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
+                            return
                         }
                     }
                 }
             }else{
-                ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves");
+                ErrorSintactico("valor valido", "Simbolo_Cerrar_LLaves", Actual);
             }
         }
     }
     return false;
 }
 
-function SentenciaDo(){
-    console.log("SentenciaDo");
-    QuitarComentarios()
+function SentenciaDo(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
-        Parea("Reservada_do", "")
-        if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves")){
-            ListaInstrucciones();
-            if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves")){
-                if(Parea("Reservada_while", "Simbolo_Punto_Y_Coma")){
-                    if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma")){
-                        if(Expresion()){
-                            if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma")){
-                                if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                                    //Traduccion
+        Parea("Reservada_do", "", Actual, "do")
+        if(Parea("Simbolo_Abrir_LLaves", "Simbolo_Cerrar_LLaves", Actual, ":")){
+            ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
+            if(Parea("Simbolo_Cerrar_LLaves", "Simbolo_Cerrar_LLaves", Actual, "?")){
+                if(Parea("Reservada_while", "Simbolo_Punto_Y_Coma", Actual, "while ")){
+                    if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma", Actual, "")){
+                        if(Expresion(NuevoNodo(Actual, "Expresion"))){
+                            if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, "")){
+                                if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
+                                    return
                                 }
                             }
                         }else{
-                            ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma");
+                            ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma", Actual);
                         }
                     }
                 }
@@ -1184,100 +1251,97 @@ function SentenciaDo(){
     return false;
 }
 
-function ListaDefiniones(){
-    console.log("ListaDefinciones");
-    QuitarComentarios()
+function ListaDefiniones(Actual){
+    QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_public"){
-            Parea("Reservada_public","");
-            SelectorDefincion();
-            ListaDefiniones();
+            Nuevo = NuevoNodo(Actual, "SelectorDefinicion");
+            Parea("Reservada_public","", Nuevo, "def ");
+            SelectorDefincion(Nuevo);
+            ListaDefiniones(NuevoNodo(Actual, "ListaDefiniciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_int" ||Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
-            Declaracion()
-            ListaDefiniones();
+            Declaracion(NuevoNodo(Actual, "Declaracion"))
+            ListaDefiniones(NuevoNodo(Actual, "ListaDefiniciones"));
         }else if(Tokens[ContT].Tipo != "Simbolo_Cerrar_LLaves"){
-            ErrorSintactico("Inicio de instruccion valida", "Ambos")
-            ListaDefiniones();
+            ErrorSintactico("Inicio de instruccion valida", "Ambos", Actual)
+            ListaDefiniones(NuevoNodo(Actual, "ListaDefiniciones"));
         }
     }
 }
 
-function SelectorDefincion(){
-    console.log("SelectorDefincion");
-    QuitarComentarios();
+function SelectorDefincion(Actual){
+    QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_void"){
-            Parea("Reservada_void", "");
-            if(Parea("ID", "Simbolo_Punto_Y_Coma")){
-                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma")){
-                    if(ListaParametros()){
-                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma")){
-                            if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                                //Traducir
+            Parea("Reservada_void", "", Actual, "");
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Punto_Y_Coma", Actual, Tokens[ContT].Lexema)){
+                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma", Actual, "(")){
+                    if(ListaParametros(NuevoNodo(Actual, "ListaParametros"))){
+                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, ")")){
+                            if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
+                                return;
                             }
                         }
                     }
                 }
             }
+            return;
         }else if(Tokens[ContT].Tipo == "Reservada_int" || Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
-            TiposVariables("Simbolo_Punto_Y_Coma");
-            if(Parea("ID", "Simbolo_Punto_Y_Coma")){
-                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma")){
-                    if(ListaParametros()){
-                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma")){
-                            if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma")){
-                                //Traducir
+            TiposVariables("Simbolo_Punto_Y_Coma", NuevoNodo(Actual, "TiposVariables"));
+            QuitarComentarios(Actual);
+            if(Parea("ID", "Simbolo_Punto_Y_Coma", Actual, Tokens[ContT].Lexema)){
+                if(Parea("Simbolo_Abrir_Parentesis", "Simbolo_Punto_Y_Coma", Actual, "(")){
+                    if(ListaParametros(NuevoNodo(Actual, "ListaParametros"))){
+                        if(Parea("Simbolo_Cerrar_Parentesis", "Simbolo_Punto_Y_Coma", Actual, ")")){
+                            if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
+                                return;
                             }
                         }
                     }
                 }
             }
-        }else{
-            ErrorSintactico("palabra reservada \"static\", \"void\" o un indicador de tipo de dato", "Simbolo_Punto_Y_Coma")
+            return;
         }
-    }else{
-        ErrorSintactico("palabra reservada \"void\" o un indicador de tipo de dato", "Simbolo_Cerrar_LLaves")
     }
+    ErrorSintactico("palabra reservada \"void\" o un indicador de tipo de dato", "Simbolo_Cerrar_LLaves")
 }
 
-function Parea(Esperado, Panico, Actual){
+function Parea(Esperado, Panico, Actual, Traduccion){
     QuitarComentarios()
     if(ContT < Tokens.length && Tokens[ContT].Tipo == Esperado){
-        console.log("Parea: " + Esperado + ", " + Tokens[ContT].Tipo);
+        NuevoNodoT(Actual, Tokens[ContT].Tipo, Traduccion);
         ContT++;
         return true;
     }else{
-        ErrorSintactico(Esperado, Panico);
+        ErrorSintactico(Esperado, Panico, Actual);
         return false;
     }
 }
 
 function ErrorSintactico(Esperado, Panico, Actual){
     if(ContT < Tokens.length){
+        Actual.NoTraducir();
         if(Panico == "Ambos"){
-            console.log("Parea: " + Esperado + "," + Tokens[ContT].Tipo);
             Errores.push(new Error("Sintactico", Tokens[ContT].Tipo ,  "Vino " + Tokens[ContT].Tipo + " y se esperaba " + Esperado, Tokens[ContT].Fila, Tokens[ContT].Columna));
             do{
                 ContT++;
             }while(ContT < Tokens.length && Tokens[ContT].Tipo != "Simbolo_Cerrar_LLaves" && Tokens[ContT-1].Tipo != "Simbolo_Punto_Y_Coma");
         }else{
-            console.log("Parea: " + Esperado + "," + Tokens[ContT].Tipo);
-            console.log(Panico);
             Errores.push(new Error("Sintactico", Tokens[ContT].Tipo ,  "Vino " + Tokens[ContT].Tipo + " y se esperaba " + Esperado, Tokens[ContT].Fila, Tokens[ContT].Columna));
             do{
                 ContT++;
             }while(ContT < Tokens.length && Tokens[ContT-1].Tipo != Panico);
         }
     }else{
-        console.log("Parea: " + Esperado + ", [Vacio]");
         Errores.push(new Error("Sintactico", "[Vacio]" , "se esperaba " + Esperado, Tokens[ContT-1].Fila, Tokens[ContT-1].Columna + Tokens[ContT-1].Lexema.length + 1));
     }
 }
 
-function QuitarComentarios(){
+function QuitarComentarios(Actual){
     if(ContT < Tokens.length){
         while(Tokens[ContT].Tipo == "Comentario_Unilinea" || Tokens[ContT].Tipo == "Comentario_Multilinea"){
-            Parea(Tokens[ContT].Tipo, "");
+            Parea(Tokens[ContT].Tipo, "", Actual, "");
         }
     }
 }
