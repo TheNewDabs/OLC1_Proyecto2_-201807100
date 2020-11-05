@@ -31,7 +31,6 @@
 %%
 
 \s+
-[ \t\n\r\f]
 "//".*	  									
 [/][*][^*]*[*]+([^/*][^*]*[*]+)*[/]			
 
@@ -42,7 +41,7 @@
 "int"						{ListaTokens.push(new Token('Reservada_int', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_int';}
 "double"					{ListaTokens.push(new Token('Reservada_double', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_double';}
 "char"						{ListaTokens.push(new Token('Reservada_char', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_char';}
-""String"					{ListaTokens.push(new Token('Reservada_String', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_String';}
+"String"					{ListaTokens.push(new Token('Reservada_String', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_String';}
 "boolean"					{ListaTokens.push(new Token('Reservada_boolean', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_boolean';}
 "for"						{ListaTokens.push(new Token('Reservada_for', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_for';}
 "while"						{ListaTokens.push(new Token('Reservada_while', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_while';}
@@ -60,32 +59,32 @@
 "true"						{ListaTokens.push(new Token('Reservada_true', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_true';}
 "false"						{ListaTokens.push(new Token('Reservada_false', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_false';}
 
-"&&"						{ListaTokens.push(new Token('Simbolo_AND', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_AND';}
-"||"						{ListaTokens.push(new Token('Simbolo_OR', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_OR';}
-"++"						{ListaTokens.push(new Token('Simbolo_Adicion', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Adicion';}
-"+"							{ListaTokens.push(new Token('Simbolo_Mas', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Mas';}
-"--"						{ListaTokens.push(new Token('Simbolo_Sustraccion', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Sustraccion';}
-"-"							{ListaTokens.push(new Token('Simbolo_Menos', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Menos';}
-"*"							{ListaTokens.push(new Token('Simbolo_Asterisco', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Asterisco';}
-"/"							{ListaTokens.push(new Token('Simbolo_Diagonal', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Diagonal';}
-"=="						{ListaTokens.push(new Token('Simbolo_Comparacion', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Comparacion';}
-"="							{ListaTokens.push(new Token('Simbolo_Igual', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Igual';}
-">="						{ListaTokens.push(new Token('Simbolo_Mayor_Igual', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Mayor_Igual';}
-">"							{ListaTokens.push(new Token('Simbolo_Mayor', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Mayor';}
-"<="						{ListaTokens.push(new Token('Simbolo_Menor_Igual', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Menor_Igual';}
-"<"							{ListaTokens.push(new Token('Simbolo_Menor', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Menor';}
-"!="						{ListaTokens.push(new Token('Simbolo_Distinto', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Distinto';}
-"!"							{ListaTokens.push(new Token('Simbolo_Negación', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Negación';}
-"{"							{ListaTokens.push(new Token('Simbolo_Abrir_LLaves', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Abrir_LLaves';}
-"}"							{ListaTokens.push(new Token('Simbolo_Cerrar_LLaves', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Cerrar_LLaves';}
-"("							{ListaTokens.push(new Token('Simbolo_Abrir_Parentesis', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Abrir_Parentesis';}
-")"							{ListaTokens.push(new Token('Simbolo_Cerrar_Parentesis', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Cerrar_Parentesis';}
-";"							{ListaTokens.push(new Token('Simbolo_Punto_Y_Coma', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Punto_Y_Coma';}
-"."							{ListaTokens.push(new Token('Simbolo_Punto', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Punto';}
-","							{ListaTokens.push(new Token('Simbolo_Coma', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Coma';}
-"["							{ListaTokens.push(new Token('Simbolo_Abrir_Corchete', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Abrir_Corchete';}
-"]"							{ListaTokens.push(new Token('Simbolo_Cerrar_Corchete', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Cerrar_Corchete';}
-"^"							{ListaTokens.push(new Token('Simbolo_Xor', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Xor';}
+'&&'						{ListaTokens.push(new Token('Simbolo_AND', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_AND';}
+'||'						{ListaTokens.push(new Token('Simbolo_OR', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_OR';}
+'++'						{ListaTokens.push(new Token('Simbolo_Adicion', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Adicion';}
+'+'							{ListaTokens.push(new Token('Simbolo_Mas', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Mas';}
+'--'						{ListaTokens.push(new Token('Simbolo_Sustraccion', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Sustraccion';}
+'-'							{ListaTokens.push(new Token('Simbolo_Menos', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Menos';}
+'*'							{ListaTokens.push(new Token('Simbolo_Asterisco', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Asterisco';}
+'/'							{ListaTokens.push(new Token('Simbolo_Diagonal', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Diagonal';}
+'=='						{ListaTokens.push(new Token('Simbolo_Comparacion', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Comparacion';}
+'='							{ListaTokens.push(new Token('Simbolo_Igual', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Igual';}
+'>='						{ListaTokens.push(new Token('Simbolo_Mayor_Igual', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Mayor_Igual';}
+'>'							{ListaTokens.push(new Token('Simbolo_Mayor', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Mayor';}
+'<='						{ListaTokens.push(new Token('Simbolo_Menor_Igual', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Menor_Igual';}
+'<'							{ListaTokens.push(new Token('Simbolo_Menor', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Menor';}
+'!='						{ListaTokens.push(new Token('Simbolo_Distinto', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Distinto';}
+'!'							{ListaTokens.push(new Token('Simbolo_Negación', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Negación';}
+'{'							{ListaTokens.push(new Token('Simbolo_Abrir_LLaves', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Abrir_LLaves';}
+'}'							{ListaTokens.push(new Token('Simbolo_Cerrar_LLaves', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Cerrar_LLaves';}
+'('							{ListaTokens.push(new Token('Simbolo_Abrir_Parentesis', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Abrir_Parentesis';}
+')'							{ListaTokens.push(new Token('Simbolo_Cerrar_Parentesis', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Cerrar_Parentesis';}
+';'							{ListaTokens.push(new Token('Simbolo_Punto_Y_Coma', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Punto_Y_Coma';}
+'.'							{ListaTokens.push(new Token('Simbolo_Punto', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Punto';}
+','							{ListaTokens.push(new Token('Simbolo_Coma', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Coma';}
+'['							{ListaTokens.push(new Token('Simbolo_Abrir_Corchete', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Abrir_Corchete';}
+']'							{ListaTokens.push(new Token('Simbolo_Cerrar_Corchete', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Cerrar_Corchete';}
+'^'							{ListaTokens.push(new Token('Simbolo_Xor', yytext, yylloc.first_line, yylloc.first_column)); return 'Simbolo_Xor';}
 
 \"[^\"]*\"					{yytext = yytext.substr(1,yyleng-2); ListaTokens.push(new Token('Cadena', yytext, yylloc.first_line, yylloc.first_column)); return 'Cadena'; }
 \'[^\"]\'					{yytext = yytext.substr(1,yyleng-2); ListaTokens.push(new Token('Caracter', yytext, yylloc.first_line, yylloc.first_column)); return 'Caracter'; }
@@ -95,7 +94,7 @@
 
 
 <<EOF>>				return 'EOF';
-.					{ ListaError.push(new Token('Lexico', yytext, "Simbolo no perteneciente al lenguaje", yylloc.first_line, yylloc.first_column));}
+.					{ ListaError.push(new Error('Lexico', yytext, "Simbolo no perteneciente al lenguaje", yylloc.first_line, yylloc.first_column));}
 
 /lex
 
@@ -133,10 +132,9 @@ Inicio
 ;
 
 Lista
-	: Lista Reservada_public Selector 	{$$=new Nodo("Lista", "");
-									  	$$.Hijos.push($1);
+	: Reservada_public Selector Lista	{$$=new Nodo("Lista", "");
 										$$.Hijos.push(new Nodo("Reservada_public", ""));
-
+										$$.Hijos.push($2);
 										$$.Hijos.push($3);} 
 	| EOF   { $$=new Nodo("Lista", "");}
 
@@ -165,14 +163,15 @@ Selector
 ;
 
 ListaMetodos
-	: ListaMetodos Reservada_public SelectorMetodo 	{$$=new Nodo("ListaMetodos", "");
-													$$.Hijos.push($1);
+	: Reservada_public SelectorMetodo ListaMetodos 	{$$=new Nodo("ListaMetodos", "");
 													$$.Hijos.push(new Nodo"Reservada_public", ""));
+													$$.Hijos.push($2);
 													$$.Hijos.push($3);}
 
-	| ListaMetodos Declaracion	{$$=new Nodo("ListaMetodos", "");
+	| TiposVariables Declaracion ListaMetodos	{$$=new Nodo("ListaMetodos", "");
 								$$.Hijos.push($1);
-								$$.Hijos.push($2);}
+								$$.Hijos.push($2);
+								$$.Hijos.push($3);}
 
 	| Simbolo_Cerrar_LLaves	{$$=new Nodo("ListaMetodos", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n\n"));}
 
@@ -259,47 +258,47 @@ TiposVariables
 ;
 
 ListaIntrucciones
-	: ListaIntrucciones Declaracion {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
+	: TiposVariables Declaracion ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2); $$.Hijos.push($3);}
 	
-	| ListaIntrucciones ID SelectorID {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push(new Nodo("ID", $2)); $$.Hijos.push($2); $$.Hijos.push($3);}
+	| ID SelectorID ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push(new Nodo("ID", $1)); $$.Hijos.push($2); $$.Hijos.push($3);}
 
-	| ListaIntrucciones Reservada_return ValoresReturn {$$=new Nodo("ListaInstrucciones", ""); 
-	$$.Hijos.push($1)
+	| Reservada_return ValoresReturn ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); 
 	$$.Hijos.push(new Nodo("Reservada_return", "return")); 
 	$$.Hijos.push($2); $$.Hijos.push($3);}
 
-	| ListaIntrucciones Reservada_continue Simbolo_Punto_Y_Coma {$$=new Nodo("ListaInstrucciones", ""); 
-	$$.Hijos.push($1)
+	| Reservada_continue Simbolo_Punto_Y_Coma ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); 
 	$$.Hijos.push(new Nodo("Reservada_continue", "continue")); 
-	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
+	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));
+	$$.Hijos.push($3);}
 
-	| ListaIntrucciones Reservada_break Simbolo_Punto_Y_Coma {$$=new Nodo("ListaInstrucciones", ""); 
-	$$.Hijos.push($1)
+	| Reservada_break Simbolo_Punto_Y_Coma ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); 
 	$$.Hijos.push(new Nodo("Reservada_continue", "break")); 
-	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}}
+	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));
+	$$.Hijos.push($3);}
 
-	| ListaIntrucciones Reservada_print Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Punto_Y_Coma {$$=new Nodo("ListaInstrucciones", ""); 
-	$$.Hijos.push($1)
+	| Reservada_print Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Punto_Y_Coma ListaIntrucciones{$$=new Nodo("ListaInstrucciones", ""); 
 	$$.Hijos.push(new Nodo("Reservada_print", "Console.log")); 
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
-	$$.Hijos.push($4);
+	$$.Hijos.push($3);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
-	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}}
+	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));
+	$$.Hijos.push($6);}
+
 	| ListaIntrucciones Reservada_println Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Punto_Y_Coma {$$=new Nodo("ListaInstrucciones", ""); 
-	$$.Hijos.push($1)
 	$$.Hijos.push(new Nodo("Reservada_println", "Console.log")); 
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
 	$$.Hijos.push($4);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
-	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}}
+	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));
+	$$.Hijos.push($6);}
 
-	| ListaIntrucciones SentenciaIf {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
+	| SentenciaIf ListaIntrucciones{$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
 
-	| ListaIntrucciones SentenciaFor {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
+	| SentenciaFor ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
 
-	| ListaIntrucciones SentenciaWhile {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
+	| SentenciaWhile ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
 
-	| ListaIntrucciones SentenciaDo {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
+	| SentenciaDo ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
 
 	| Simbolo_Cerrar_LLaves {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "Console.log"));}
 
@@ -315,13 +314,13 @@ RecuperacionI
 ;
 
 Declaracion
-	: TipoVariables ID DeclaracionP Simbolo_Punto_Y_Coma {$$=new Nodo("Declaracion", "");
-	$$.Hijos.push($1);
-	$$.Hijos.push(new Nodo("ID", $2));
-	$$.Hijos.push($3);
+	: ID DeclaracionP Simbolo_Punto_Y_Coma {$$=new Nodo("Declaracion", "");
+	$$.Hijos.push(new Nodo("ID", $1));
+	$$.Hijos.push($2);
 	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
 	| error Simbolo_Punto_Y_Coma { $$ = new Nodo("Declaracion",""); 
     	$$.Hijos.push(new Nodo("Error", ""));  
+		$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", ""));
         ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
 ;
 
@@ -474,17 +473,18 @@ OpcionElse
 ;
 
 SentenciaFor
-	: Reservada_for Simbolo_Abrir_Parentesis Declaracion Expresion Simbolo_Punto_Y_Coma Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones Simbolo_Cerrar_LLaves {$$=new Nodo("SentenciaFor", ""); 
+	: Reservada_for Simbolo_Abrir_Parentesis TiposVariables Declaracion Expresion Simbolo_Punto_Y_Coma Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones Simbolo_Cerrar_LLaves {$$=new Nodo("SentenciaFor", ""); 
 	$$.Hijos.push(new Nodo("Reservada_for", "for"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
 	$$.Hijos.push($3);
-	$$.Hijos[2].Hijos[3].Traduccion = ";";
 	$$.Hijos.push($4);
+	$$.Hijos[3].Hijos[2].Traduccion = ";";
+	$$.Hijos.push($5);
 	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", ")"));
-	$$.Hijos.push($6);
+	$$.Hijos.push($7);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{"));
-	$$.Hijos.push($9);
+	$$.Hijos.push($10);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n"));}
 	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("SentenciaFor",""); 
     	$$.Hijos.push(new Nodo("Error", ""));  
@@ -522,13 +522,13 @@ SentenciaDo
 ;
 
 ListaDefiniones
-	: ListaDefiniones Declaracion {$$=new Nodo("ListaDefiniones", "");
+	: Declaracion ListaDefiniones{$$=new Nodo("ListaDefiniones", "");
 	$$.Hijos.push($1);
 	$$.Hijos.push($2);}
 
-	| ListaDefiniones Reservada_public SelectorDefincion {$$=new Nodo("ListaDefiniones", "");
-	$$.Hijos.push($1);
+	| Reservada_public SelectorDefincion ListaDefiniones {$$=new Nodo("ListaDefiniones", "");
 	$$.Hijos.push(new Nodo("Reservada_public", ""));
+	$$.Hijos.push($2);
 	$$.Hijos.push($3);}
 
 	| Simbolo_Cerrar_LLaves	{$$=new Nodo("ListaDefiniones", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n\n"));}
