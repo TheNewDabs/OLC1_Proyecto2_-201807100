@@ -82,8 +82,8 @@ class Nodo{
     }
 }
 
-let Tokens = Array()
-let Errores = Array()
+let Tokens = new Array()
+let Errores = new Array()
 let Raiz = null;
 let ContT = 0;
 let Identado = 0;
@@ -133,8 +133,8 @@ async function Main(){
 }
 
 function Analizador(){
-    Tokens = Array()
-    Errores = Array()
+    Tokens = new Array()
+    Errores = new Array()
     Raiz = null;
     ContT = 0;
     AnalizadorLexico(Cod());
@@ -1341,7 +1341,11 @@ function ErrorSintactico(Esperado, Panico, Actual){
 function QuitarComentarios(Actual){
     if(ContT < Tokens.length){
         while(Tokens[ContT].Tipo == "Comentario_Unilinea" || Tokens[ContT].Tipo == "Comentario_Multilinea"){
-            Parea(Tokens[ContT].Tipo, "", Actual, "");
+            if(Tokens[ContT].Tipo == "Comentario_Unilinea"){
+                Parea(Tokens[ContT].Tipo, "", Actual, "#" + Tokens[ContT].Lexema);
+            }else{
+                Parea(Tokens[ContT].Tipo, "", Actual, "'''" + Tokens[ContT].Lexema + "'''");
+            }
         }
     }
 }

@@ -1,0 +1,1 @@
+const apps = require('./app');
