@@ -21,8 +21,8 @@
 		}
     }
 
-	var ListaErrores = new Array();
-	var ListaTokens = new Array();
+	var ListaErrores = [];
+	var ListaTokens = [];
 %}
 %lex
 
@@ -30,9 +30,9 @@
 
 %%
 
-\s+
-"//".*	  									
-[/][*][^*]*[*]+([^/*][^*]*[*]+)*[/]			
+\s+										// Espacios
+"//".*									// comentario unilinea
+[/][*][^*]*[*]+([^/*][^*]*[*]+)*[/]		// comentario multilinea
 
 "public"					{ListaTokens.push(new Token('Reservada_public', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_public';}
 "class"						{ListaTokens.push(new Token('Reservada_class', yytext, yylloc.first_line, yylloc.first_column)); return 'Reservada_class';}
@@ -94,7 +94,7 @@
 
 
 <<EOF>>				return 'EOF';
-.					{ ListaError.push(new Error('Lexico', yytext, "Simbolo no perteneciente al lenguaje", yylloc.first_line, yylloc.first_column));}
+.					{ ListaErrores.push(new Error('Lexico', yytext, "Simbolo no perteneciente al lenguaje", yylloc.first_line, yylloc.first_column));}
 
 /lex
 
@@ -118,7 +118,7 @@ Inicio
 	: Lista 
 	{
 		$$=new Nodo("Inicio","");
-        $$.agregarHijo($1);
+        $$.Hijos.push($1);
         Raiz=$$;
         var retorno={
 			raiz:Raiz,
@@ -141,7 +141,7 @@ Lista
 	| error Simbolo_Cerrar_LLaves Lista { $$ = new Nodo("Lista",""); 
     	$$.Hijos.push(new Nodo("Error", ""));  
 		$$.Hijos.push($3);
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+        ListaErrores.push(new Error("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column));}
 ;
 
 Selector
@@ -151,20 +151,20 @@ Selector
 															$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{\n"));
 															$$.Hijos.push($4);}
 
-	| Reservada_interface ID Simbolo_Abrir_LLaves ListaDefiniciones {$$=new Nodo("Selector", ""); 
+	| Reservada_interface ID Simbolo_Abrir_LLaves ListaDefiniones {$$=new Nodo("SelectorI", ""); 
 																	$$.Hijos.push(new Nodo("Reservada_interface", "")); 
 																	$$.Hijos.push(new Nodo("ID", ""));
 																	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", ""));
 																	$$.Hijos.push($4);
 																	;}
-	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("Selector",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
 ;
 
 ListaMetodos
-	: Reservada_public SelectorMetodo ListaMetodos 	{$$=new Nodo("ListaMetodos", "");
-													$$.Hijos.push(new Nodo"Reservada_public", ""));
+
+	: Simbolo_Cerrar_LLaves	{$$=new Nodo("ListaMetodos", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "\n}\n\n"));}
+
+	| Reservada_public SelectorMetodo ListaMetodos 	{$$=new Nodo("ListaMetodos", "");
+													$$.Hijos.push(new Nodo("Reservada_public", ""));
 													$$.Hijos.push($2);
 													$$.Hijos.push($3);}
 
@@ -173,12 +173,10 @@ ListaMetodos
 								$$.Hijos.push($2);
 								$$.Hijos.push($3);}
 
-	| Simbolo_Cerrar_LLaves	{$$=new Nodo("ListaMetodos", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n\n"));}
-
 	| error RecuperacionM ListaMetodos { $$ = new Nodo("ListaMetodos",""); 
     	$$.Hijos.push(new Nodo("Error", ""));  
 		$$.Hijos.push($3);
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+        ListaErrores.push(new Error("Sintactico", yytext, "Token inesperado", this._$.first_line, this._$.first_column));}
 ;
 
 RecuperacionM
@@ -187,8 +185,9 @@ RecuperacionM
 ;
 
 SelectorMetodo
-	: Reservada_static Reservada_void Reservada_main Simbolo_Abrir_Parentesis Reservada_String Simbolo_Abrir_Corchete Simbolo_Cerrar_Corchete Reservada_args Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaInstrucciones {$$=new Nodo("SelectorMetodo", "");
-	$$.Hijos.push(new Nodo("Reservada_static", "function "));;
+
+	: Reservada_static Reservada_void Reservada_main Simbolo_Abrir_Parentesis Reservada_String Simbolo_Abrir_Corchete Simbolo_Cerrar_Corchete Reservada_args Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones {$$=new Nodo("SelectorMetodo", "");
+	$$.Hijos.push(new Nodo("Reservada_static", "function "));
     $$.Hijos.push(new Nodo("Reservada_void", ""));
 	$$.Hijos.push(new Nodo("Reservada_main", "main"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
@@ -200,65 +199,60 @@ SelectorMetodo
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{\n"));
 	$$.Hijos.push($11);}
 
-	| Reservada_void ID Simbolo_Abrir_Parentesis ListaParametros Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaInstrucciones	{$$=new Nodo("SelectorMetodo", "");
+	| Reservada_void ID Simbolo_Abrir_Parentesis ListaParametros Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones {$$=new Nodo("SelectorMetodo", "");
 	$$.Hijos.push(new Nodo("Reservada_void", "function "));
 	$$.Hijos.push(new Nodo("ID", $2));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
 	$$.Hijos.push($4);
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", "("));
-	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{\n"))6
+	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
+	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{\n"))
 	$$.Hijos.push($7);}
 
-	| TipoVariables ID Simbolo_Abrir_Parentesis ListaParametros Simbolo_Abrir_LLaves ListaInstrucciones	{$$=new Nodo("SelectorMetodo", "");
+	| TiposVariables ID Simbolo_Abrir_Parentesis ListaParametros Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones {$$=new Nodo("SelectorMetodo", "");
 	$$.Hijos.push($1);
 	$$.Hijos[0].Hijos[0].Traduccion = "function ";
 	$$.Hijos.push(new Nodo("ID", $2));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
 	$$.Hijos.push($4);
+	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{\n"));
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", "("));
 	$$.Hijos.push($7);}
-
-	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("SelectorMetodo",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
 ;
 
 ListaParametros
-	: TipoVariable ID ListaParametrosP Simbolo_Cerrar_Parentesis {$$=new Nodo("ListaParametros", "");
+	: TiposVariables ID ListaParametrosP{$$=new Nodo("ListaParametros", "");
 	$$.Hijos.push($1);
 	$$.Hijos[0].Hijos[0].Traduccion = "";
 	$$.Hijos.push(new Nodo("ID", $2));
-	$$.Hijos.push($3);
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));}
+	$$.Hijos.push($3);}
 
-	| 
+	| {$$=new Nodo("ListaParametros", "");}
 ;
 
 ListaParametrosP
-	: Simbolo_Coma TipoVariable ID ListaParametrosP	{$$=new Nodo("ListaParametrosP", "");
+	: Simbolo_Coma TiposVariables ID ListaParametrosP	{$$=new Nodo("ListaParametrosP", "");
 	$$.Hijos.push(new Nodo("Simbolo_Coma", ", "));
 	$$.Hijos.push($2);
 	$$.Hijos[1].Hijos[0].Traduccion = "";
 	$$.Hijos.push(new Nodo("ID", $3));
 	$$.Hijos.push($4);}
 
-	| 
+	| {$$=new Nodo("ListaParametrosP", "");}
 ;
 
 TiposVariables
-	: Reservada_int {$$=new Nodo("ListaParametrosP", ""); $$.Hijos.push(new Nodo("Reservada_int", "var "));}
-	| Reservada_double {$$=new Nodo("ListaParametrosP", ""); $$.Hijos.push(new Nodo("Reservada_double", "var "));}
-	| Reservada_char {$$=new Nodo("ListaParametrosP", ""); $$.Hijos.push(new Nodo("Reservada_char", "var "));}
-	| Reservada_String {$$=new Nodo("ListaParametrosP", ""); $$.Hijos.push(new Nodo("Reservada_String", "var "));}
-	| Reservada_boolean {$$=new Nodo("ListaParametrosP", ""); $$.Hijos.push(new Nodo("Reservada_boolean", "var "));}
-	| error { $$ = new Nodo("TiposVariables",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-    	ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+	: Reservada_int {$$=new Nodo("TiposVariables", ""); $$.Hijos.push(new Nodo("Reservada_int", "var "));}
+	| Reservada_double {$$=new Nodo("TiposVariables", ""); $$.Hijos.push(new Nodo("Reservada_double", "var "));}
+	| Reservada_char {$$=new Nodo("TiposVariables", ""); $$.Hijos.push(new Nodo("Reservada_char", "var "));}
+	| Reservada_String {$$=new Nodo("TiposVariables", ""); $$.Hijos.push(new Nodo("Reservada_String", "var "));}
+	| Reservada_boolean {$$=new Nodo("TiposVariables", ""); $$.Hijos.push(new Nodo("Reservada_boolean", "var "));}
 ;
 
 ListaIntrucciones
-	: TiposVariables Declaracion ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2); $$.Hijos.push($3);}
+
+	: Simbolo_Cerrar_LLaves {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "\n}\n\n"));}
+
+	| TiposVariables Declaracion ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2); $$.Hijos.push($3);}
 	
 	| ID SelectorID ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push(new Nodo("ID", $1)); $$.Hijos.push($2); $$.Hijos.push($3);}
 
@@ -284,15 +278,15 @@ ListaIntrucciones
 	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));
 	$$.Hijos.push($6);}
 
-	| ListaIntrucciones Reservada_println Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Punto_Y_Coma {$$=new Nodo("ListaInstrucciones", ""); 
+	| Reservada_println Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Punto_Y_Coma ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); 
 	$$.Hijos.push(new Nodo("Reservada_println", "Console.log")); 
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
-	$$.Hijos.push($4);
+	$$.Hijos.push($3);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
 	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));
 	$$.Hijos.push($6);}
 
-	| SentenciaIf ListaIntrucciones{$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
+	| SentenciaIF ListaIntrucciones{$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
 
 	| SentenciaFor ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
 
@@ -300,12 +294,11 @@ ListaIntrucciones
 
 	| SentenciaDo ListaIntrucciones {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push($1); $$.Hijos.push($2);}
 
-	| Simbolo_Cerrar_LLaves {$$=new Nodo("ListaInstrucciones", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "Console.log"));}
-
 	| error RecuperacionI { $$ = new Nodo("ListaIntrucciones",""); 
     	$$.Hijos.push(new Nodo("Error", ""));  
 		$$.Hijos.push($2);
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+        ListaErrores.push(new Error("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column));}
+
 ;
 
 RecuperacionI
@@ -318,10 +311,6 @@ Declaracion
 	$$.Hijos.push(new Nodo("ID", $1));
 	$$.Hijos.push($2);
 	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
-	| error Simbolo_Punto_Y_Coma { $$ = new Nodo("Declaracion",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-		$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", ""));
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
 ;
 
 DeclaracionP
@@ -330,7 +319,7 @@ DeclaracionP
 	$$.Hijos.push(new Nodo("ID", $2));
 	$$.Hijos.push($3);}
 
-	| Simbolo_Igual Expresion DeclarcionBP {$$=new Nodo("DeclaracionP", "");
+	| Simbolo_Igual Expresion DeclaracionBP {$$=new Nodo("DeclaracionP", "");
 	$$.Hijos.push(new Nodo("Simbolo_Igual", " = "));
 	$$.Hijos.push($2);
 	$$.Hijos.push($3);}
@@ -349,11 +338,11 @@ DeclaracionBP
 
 Expresion
 	: Simbolo_Mas Exp {$$=new Nodo("Expresion", "");
-	$$.Hijos.push(new Nodo("Simbolo_Mas", ", "));
+	$$.Hijos.push(new Nodo("Simbolo_Mas", "+"));
 	$$.Hijos.push($2);}
 
 	| Simbolo_Menos Exp {$$=new Nodo("Expresion", "");
-	$$.Hijos.push(new Nodo("Simbolo_Menos", ", "));
+	$$.Hijos.push(new Nodo("Simbolo_Menos", "-"));
 	$$.Hijos.push($2);}
 
 	| Exp {$$=new Nodo("Expresion", "");
@@ -363,16 +352,13 @@ Expresion
 Exp
 	: Entero Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Entero", $1)); $$.Hijos.push($2);}
 	| Decimal Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Decimal", $1)); $$.Hijos.push($2);}
-	| Cadena Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Cadena", $1)); $$.Hijos.push($2);}
-	| Caracter Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Caracter", $1)); $$.Hijos.push($2);}
+	| Cadena Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Cadena", '"' + $1 + '"')); $$.Hijos.push($2);}
+	| Caracter Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Caracter", "'" + $1 + "'")); $$.Hijos.push($2);}
 	| Reservada_true Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Reservada_true", $1)); $$.Hijos.push($2);}
 	| Reservada_false Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Reservada_false", $1)); $$.Hijos.push($2);}
 	| ID PosibilidadMetodo Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("ID", $1)); $$.Hijos.push($2); $$.Hijos.push($3);}
 	| Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Operador {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "(")); $$.Hijos.push($2); $$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")")); $$.Hijos.push($4);}
 	| Simbolo_Negación Exp {$$=new Nodo("Exp", ""); $$.Hijos.push(new Nodo("Simbolo_Negación", $1)); $$.Hijos.push($2);}
-	| error RecuperacionE { $$ = new Nodo("Exp",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
 ;
 
 RecuperacionE
@@ -381,21 +367,21 @@ RecuperacionE
 ;
 
 Operador
-	: Simbolo_Mas Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Mas", $1)); $$.Hijos.push($2);}
-	| Simbolo_Menos Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Menos", $1)); $$.Hijos.push($2);}
-	| Simbolo_Asterisco Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Asterisco", $1)); $$.Hijos.push($2);}
-	| Simbolo_Diagonal Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Diagonal", $1)); $$.Hijos.push($2);}
-	| Simbolo_Adicion Operador {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Adicion", $1)); $$.Hijos.push($2);}
-	| Simbolo_Sustraccion Operador {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Sustraccion", $1)); $$.Hijos.push($2);}
-	| Simbolo_Comparacion Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Comparacion", $1)); $$.Hijos.push($2);}
-	| Simbolo_Mayor Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Mayor", $1)); $$.Hijos.push($2);}
-	| Simbolo_Mayor_Igual Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Mayor_Igual", $1)); $$.Hijos.push($2);}
-	| Simbolo_Menor Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Menor", $1)); $$.Hijos.push($2);}
-	| Simbolo_Menor_Igual Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Menor_Igual", $1)); $$.Hijos.push($2);}
-	| Simbolo_Distinto Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Distinto", $1)); $$.Hijos.push($2);}
-	| Simbolo_AND Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_AND", $1)); $$.Hijos.push($2);}
-	| Simbolo_OR Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_OR", $1)); $$.Hijos.push($2);}
-	| Simbolo_Xor Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Xor", $1)); $$.Hijos.push($2);}
+	: Simbolo_Mas Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Mas", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Menos Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Menos", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Asterisco Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Asterisco", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Diagonal Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Diagonal", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Adicion Operador {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Adicion", $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Sustraccion Operador {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Sustraccion", $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Comparacion Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Comparacion", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Mayor Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Mayor", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Mayor_Igual Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Mayor_Igual", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Menor Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Menor", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Menor_Igual Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Menor_Igual", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Distinto Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Distinto", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_AND Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_AND", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_OR Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_OR", " " + $1 + " ")); $$.Hijos.push($2);}
+	| Simbolo_Xor Exp {$$=new Nodo("Operador", ""); $$.Hijos.push(new Nodo("Simbolo_Xor", " " + $1 + " ")); $$.Hijos.push($2);}
 	| {$$=new Nodo("Operador", "");}
 ;
 
@@ -422,36 +408,25 @@ SelectorID
 	| Simbolo_Adicion Simbolo_Punto_Y_Coma {$$=new Nodo("SelectorID", ""); $$.Hijos.push(new Nodo("Simbolo_Adicion", "++")); $$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
 
 	| Simbolo_Sustraccion Simbolo_Punto_Y_Coma {$$=new Nodo("SelectorID", ""); $$.Hijos.push(new Nodo("Simbolo_Sustraccion", "--")); $$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
-
-	| error Simbolo_Punto_Y_Coma { $$ = new Nodo("SelectorID",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);} 
 ;
 
 ValoresReturn
-	: Expresion Simbolo_Punto_Y_Coma {$$=new Nodo("ValoresReturn", ""); $$.Hijos.push($1); $$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
+	: Expresion Simbolo_Punto_Y_Coma {$$=new Nodo("ValoresReturn", " "); $$.Hijos.push($1); $$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
 
 	| Simbolo_Punto_Y_Coma {$$=new Nodo("ValoresReturn", ""); $$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
 
-	| error Simbolo_Punto_Y_Coma { $$ = new Nodo("SelectorID",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);} 
+
 ;
 
 SentenciaIF
-	: Reservada_if Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones Simbolo_Cerrar_LLaves CaminosIF {$$=new Nodo("SentenciaIF", ""); 
-	$$.Hijos.push(new Nodo("Reservada_if", "if ")); 
+	: Reservada_if Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones CaminosIF {$$=new Nodo("SentenciaIF", "");  
+	$$.Hijos.push(new Nodo("Reservada_if", "if "));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
 	$$.Hijos.push($3);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{"));
 	$$.Hijos.push($6);
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n"));
-	$$.Hijos.push($8);}
-
-	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("SentenciaIF",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);} 
+	$$.Hijos.push($7);}
 ;
 
 CaminosIF
@@ -463,63 +438,48 @@ CaminosIF
 
 OpcionElse
 	: SentenciaIF {$$=new Nodo("OpcionElse", ""); $$.Hijos.push($1);}
-	|  Simbolo_Abrir_LLaves ListaIntrucciones Simbolo_Cerrar_LLaves {$$=new Nodo("OpcionElse", ""); 
+	|  Simbolo_Abrir_LLaves ListaIntrucciones {$$=new Nodo("OpcionElse", ""); 
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{\n"));
-	$$.Hijos.push($2);
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n"));}
-	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("SentenciaIF",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+	$$.Hijos.push($2);}
 ;
 
 SentenciaFor
-	: Reservada_for Simbolo_Abrir_Parentesis TiposVariables Declaracion Expresion Simbolo_Punto_Y_Coma Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones Simbolo_Cerrar_LLaves {$$=new Nodo("SentenciaFor", ""); 
+	: Reservada_for Simbolo_Abrir_Parentesis TiposVariables Declaracion Expresion Simbolo_Punto_Y_Coma Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones {$$=new Nodo("SentenciaFor", ""); 
 	$$.Hijos.push(new Nodo("Reservada_for", "for"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
 	$$.Hijos.push($3);
 	$$.Hijos.push($4);
 	$$.Hijos[3].Hijos[2].Traduccion = ";";
 	$$.Hijos.push($5);
-	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", ")"));
+	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", ";"));
 	$$.Hijos.push($7);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{"));
-	$$.Hijos.push($10);
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n"));}
-	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("SentenciaFor",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+	$$.Hijos.push($10);}
 ;
 
 SentenciaWhile
-	: Reservada_while Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones Simbolo_Cerrar_LLaves {$$=new Nodo("SentenciaWhile", ""); 
-	$$.Hijos.push(new Nodo("Reservada_while", "for"));
+	: Reservada_while Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Abrir_LLaves ListaIntrucciones {$$=new Nodo("SentenciaWhile", ""); 
+	$$.Hijos.push(new Nodo("Reservada_while", "while"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
 	$$.Hijos.push($3);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{"));
-	$$.Hijos.push($6);
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n"));}
-	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("SentenciaWhile",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+	$$.Hijos.push($6);}
 ;
 
 SentenciaDo
-	: Reservada_do Simbolo_Abrir_LLaves ListaIntrucciones Simbolo_Cerrar_LLaves Reservada_while Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Punto_Y_Coma {$$=new Nodo("SentenciaDo", ""); 
-	$$.Hijos.push(new Nodo("Reservada_do", "for"));
+	: Reservada_do Simbolo_Abrir_LLaves ListaIntrucciones Reservada_while Simbolo_Abrir_Parentesis Expresion Simbolo_Cerrar_Parentesis Simbolo_Punto_Y_Coma {$$=new Nodo("SentenciaDo", ""); 
+	$$.Hijos.push(new Nodo("Reservada_do", "do"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_LLaves", "{"));
 	$$.Hijos.push($3);
-	$$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}"));
-	$$.Hijos.push(new Nodo("Reservada_while", "for"));
+	$$.Hijos.push(new Nodo("Reservada_while", "while"));
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", "("));
-	$$.Hijos.push($7);
+	$$.Hijos.push($6);
 	$$.Hijos.push(new Nodo("Simbolo_Cerrar_Parentesis", ")"));
 	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", "\n"));}
-	| error Simbolo_Punto_Y_Coma { $$ = new Nodo("SentenciaDo",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
 ;
+
 
 ListaDefiniones
 	: Declaracion ListaDefiniones{$$=new Nodo("ListaDefiniones", "");
@@ -533,10 +493,15 @@ ListaDefiniones
 
 	| Simbolo_Cerrar_LLaves	{$$=new Nodo("ListaDefiniones", ""); $$.Hijos.push(new Nodo("Simbolo_Cerrar_LLaves", "}\n\n"));}
 
-	| error RecuperacionM ListaDefiniones { $$ = new Nodo("ListaDefiniones",""); 
+	| error RecuperacionM { $$ = new Nodo("ListaDefiniones",""); 
     	$$.Hijos.push(new Nodo("Error", ""));  
-		$$.Hijos.push($3);
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
+		$$.Hijos.push($2);
+        ListaErrores.push(new Error("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column));}
+;
+
+RecuperacionD
+	: Simbolo_Punto_Y_Coma ListaDefiniones {$$=$2}
+	| Simbolo_Cerrar_LLaves {$$=new Nodo("RecuperacionM", "");}
 ;
 
 SelectorDefincion
@@ -553,8 +518,4 @@ SelectorDefincion
 	$$.Hijos.push(new Nodo("Simbolo_Abrir_Parentesis", ""));
 	$$.Hijos.push($4);
 	$$.Hijos.push(new Nodo("Simbolo_Punto_Y_Coma", ""));}
-
-	| error Simbolo_Cerrar_LLaves { $$ = new Nodo("SelectorDefincion",""); 
-    	$$.Hijos.push(new Nodo("Error", ""));  
-        ListaErrores.push("Sintactico", $1, "Token inesperado", this._$.first_line, this._$.first_column);}
 ;
