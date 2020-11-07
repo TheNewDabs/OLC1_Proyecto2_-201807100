@@ -177,6 +177,7 @@ function Ambos(){
 }
 
 function Javascript(){
+    CodGrafica = "";
     let ta=document.getElementById(get_vent());
     let contenido=ta.value
     let myHeaders = new Headers();
@@ -195,11 +196,27 @@ function Javascript(){
             ReporteTokens("JavaScript", Regreso.Tokens);
             ReporteErrores("JavaScript", Regreso.Errores);
             DescargarReporte("Traduccion_JavaScript", Regreso.Traduccion, "js");
+            CodGrafica = `<!DOCTYPE html>
+            <meta charset="utf-8">
+            <body>
+            <script src="https://d3js.org/d3.v5.js"></script>
+            <script src="https://unpkg.com/viz.js@1.8.1/viz.js" type="application/javascript"></script>
+            <script src="https://unpkg.com/d3-graphviz@2.1.0/build/d3-graphviz.js"></script>
+            <div id="graph" style="text-align: center;"></div>
+            <script>
+            
+              d3.select("#graph").graphviz(false)
+                  .renderDot(\`digraph  {`
+            CodGrafica += Graficar(Regreso.raiz, "", "JavaScript")
+            CodGrafica +=`}\`);
+            </script>`;
+            DescargarReporte("Arbol_JavaScript", CodGrafica, "html");
         })
         .catch(error => console.log('error', error));
 }
 
 function Python(){
+    CodGrafica = "";
     let ta=document.getElementById(get_vent());
     let contenido=ta.value
     let myHeaders = new Headers();
@@ -218,8 +235,42 @@ function Python(){
             ReporteTokens("Python", Regreso.Tokens);
             ReporteErrores("Python", Regreso.Errores);
             DescargarReporte("Traduccion_Python", Regreso.Traduccion, "py");
+            CodGrafica = `<!DOCTYPE html>
+            <meta charset="utf-8">
+            <body>
+            <script src="https://d3js.org/d3.v5.js"></script>
+            <script src="https://unpkg.com/viz.js@1.8.1/viz.js" type="application/javascript"></script>
+            <script src="https://unpkg.com/d3-graphviz@2.1.0/build/d3-graphviz.js"></script>
+            <div id="graph" style="text-align: center;"></div>
+            <script>
+            
+              d3.select("#graph").graphviz(false)
+                  .renderDot(\`digraph  {`
+            CodGrafica += Graficar(Regreso.raiz, "", "Python");
+            CodGrafica +=`}\`);
+            </script>`;
+            DescargarReporte("Arbol_Python", CodGrafica, "html");
+            
         })
         .catch(error => console.log('error', error));
+}
+
+function Graficar(Actual, Cadena, Lenguaje){
+    this.Cod = "";
+    this.Cod += "Nodo" + Cadena + "[label = \"";
+    if(Lenguaje=="Python"){
+        this.Cod += Actual.Nombre;
+    }else{
+        this.Cod += Actual.Tipo;
+    }
+    this.Cod += "\"];\n"
+    for(var i=0; i<Actual.Hijos.length ;i++){
+        if(Actual.Hijos[i] != null){
+            this.Cod += "Nodo" + Cadena + " -> " + "Nodo" + Cadena + i + "[color=\"black:invis:black\"]\n"
+            this.Cod += Graficar(Actual.Hijos[i], Cadena + i, Lenguaje);
+        }
+    }
+    return Cod;
 }
 
 function ReporteTokens(Lenguaje, Tokens){
@@ -263,8 +314,6 @@ function ReporteErrores(Lenguaje, Errores){
         document.getElementById('ConsolaJS').value = 'ConsolaJS\n';
         document.getElementById('ConsolaJS').value += 'Tipo ° Lexema ° Descripcion ° Fila ° Columna';
     }
-    console.log(Lenguaje)
-    console.log(Errores)
     Reporte = `
     <!DOCTYPE html>
     <html>

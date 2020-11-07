@@ -68,6 +68,17 @@ body {
     box-shadow: 0 10px 10px 0px rgba(0, 0, 0, 0.8);
 }
 
+.contenedor4{
+    width: 100%;
+    height: auto;
+    margin: auto;
+    background:#272829;
+    color: rgb(0, 112, 163);
+    padding: 15px 15px 50px 15px;
+    border-radius: 10px;
+    box-shadow: 0 10px 10px 0px rgba(0, 0, 0, 0.8);
+}
+
 #pestanas {
     float: top;
     font-size: 3ex;
