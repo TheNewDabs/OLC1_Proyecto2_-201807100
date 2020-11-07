@@ -1,4 +1,32 @@
-const app = require('./app');
+const app = require('express')();
+const body = require('body-parser');
+const cors = require('cors');
+
+const port = 3000;
+
+app.use(body.json());
+app.use(body.urlencoded({ extended: false }));
+app.use(cors());
+
+app.post('/Python', (req, res) =>{
+    const Reportes = Analizador(req.body.Codigo);
+    var retorno={
+		raiz:Reportes.raiz,
+		Errores: Reportes.Error,
+        Tokens: Reportes.Token,
+        Traduccion: Reportes.Trad
+    };
+    res.send(retorno);
+});
+
+app.get('/Python', (req, res) =>{
+    res.send("Prueba");
+});
+
+
+app.listen(port, () => {
+    console.log('Back End Python on port ' + port)
+})
 
 class Token {
     constructor(Tipo, Lexema, Fila, Columna) {
@@ -88,99 +116,21 @@ let Raiz = null;
 let ContT = 0;
 let Identado = 0;
 
-function Cod(){
-    return `
-    /********************************************************
-*********************************************************
-*********************COMPILADORES 1**********************
-*********************************************************
-********************SEGUNDO SEMESTRE*********************
-*********************************************************
-**************************2020***************************
-*********************************************************
-*******************ENTRADA DE PRUEBA*********************
-*********************************************************
-***********************PROYECTO 2************************
-*********************************************************
-********************************************************/
 
-public interface interfaz {
-    public void helo(String h);
-} 
-
-
-public class prueba_1 {
-
-
-    public int fibonacci(int n) {
-        if (n > 1){
-            return fibonacci(n-1) + fibonacci(n-2);  //función recursiva
-
-        } else if (n == 1 || n == 0) {  // caso base
-            return 1;
-
-        } else { //error
-            System.out.println("Debes ingresar un tamaño mayor o igual a 1, ingresaste: " + n);
-            return -1; 
-            
-        }
-    }
-
-
-    public int Ack(int m, int n){
-        if (m == 0) {
-            return n + 1;
-
-        } else if (n == 0) {
-            return Ack(m - 1, 1);
-
-        } else {
-            return Ack(m - 1, Ack(m, n - 1));
-        }
-    }
-
-
-    public static void main(String[] args) {
-        int num = 32465;
-
-        System.out.println("El factorial de " + num + " es: " + factorial(num));
-
-    }
-
-     
-    public int factorial(int num){
-        if(num == 0){
-            return 1;
-        } else {
-            return num * factorial(num-1);
-        }
-    }
-
-    public String helo(String h){
-        return "Bienvenido a Compiladores 1 " + h;
-    }
-
-}
-
-`;
-}
-
-async function Main(){
-    await app.listen(3000);
-    console.log('Server on port 300');
-    Analizador();
-    return
-}
-
-function Analizador(){
+function Analizador(Codigo){
     Tokens = new Array()
     Errores = new Array()
     Raiz = null;
     ContT = 0;
-    AnalizadorLexico(Cod());
+    AnalizadorLexico(Codigo);
     AnalizadorSintactico();
-    console.log("FIN");
-    return;
+    var retorno={
+		raiz:Raiz,
+		Error: Errores,
+        Token: Tokens,
+        Trad: Raiz.TraducirNodo()
+    };
+    return retorno;
 }
 
 function isEqual(str1, str2)
@@ -599,18 +549,9 @@ function AnalizadorSintactico(){
     if(ContT < Tokens.length){
         Lista(NuevoNodo(Raiz, "Lista"));
     }
-    console.log("Lista Errores:");
-    if(Errores.length == 0){
-        console.log("Sin errores detectados");
-    }
-    for(var i=0; i<Errores.length ;i++){
-        console.log(i + " " + Errores[i].Tipo + ", " + Errores[i].Lexema + ", " + Errores[i].Descripcion + ", " + Errores[i].Fila + ", " + Errores[i].Columna);
-    }
-    console.log(Raiz.TraducirNodo());
 }
 
 function Lista(Actual){
-    console.log("Lista");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_public"){
@@ -625,7 +566,6 @@ function Lista(Actual){
 }
 
 function Selector(Actual){
-    console.log("Selector");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_class"){
@@ -659,7 +599,6 @@ function Selector(Actual){
 }
 
 function ListaMetodos(Actual){
-    console.log("ListaMetodos");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_public"){
@@ -678,7 +617,6 @@ function ListaMetodos(Actual){
 }
 
 function SelectorMetodo(Actual){
-    console.log("SelectorMetodo");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_static"){
@@ -750,7 +688,6 @@ function SelectorMetodo(Actual){
 }
 
 function ListaParametros(Actual){
-    console.log("ListaParametros");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_int" || Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
@@ -768,7 +705,6 @@ function ListaParametros(Actual){
 }
 
 function ListaParametrosP(Actual){
-    console.log("ListaParametrosP");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
@@ -788,7 +724,6 @@ function ListaParametrosP(Actual){
 }
 
 function TiposVariables(Panico, Actual){
-    console.log("TiposVariables");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_int"){
@@ -813,7 +748,6 @@ function TiposVariables(Panico, Actual){
 }
 
 function ListaInstrucciones(Actual){
-    console.log("ListaInstrucciones");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_int" || Tokens[ContT].Tipo == "Reservada_double" || Tokens[ContT].Tipo == "Reservada_char" || Tokens[ContT].Tipo == "Reservada_String" || Tokens[ContT].Tipo == "Reservada_boolean"){
@@ -870,7 +804,6 @@ function ListaInstrucciones(Actual){
 }
 
 function Declaracion(Actual){
-    console.log("Declaracion");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(TiposVariables("Simbolo_Punto_Y_Coma", NuevoNodo(Actual, "TiposVariables"))){
@@ -888,7 +821,6 @@ function Declaracion(Actual){
 }
 
 function DeclaracionP(Actual){
-    console.log("DeclaracionP");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
@@ -915,7 +847,6 @@ function DeclaracionP(Actual){
 }
 
 function DeclaracionBP(Actual){
-    console.log("DeclaracionBP");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
@@ -933,7 +864,6 @@ function DeclaracionBP(Actual){
 }
 
 function Expresion(Actual){
-    console.log("Expresion");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Mas"){
@@ -947,7 +877,6 @@ function Expresion(Actual){
 }
 
 function Exp(Actual){
-    console.log("Exp");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         switch(Tokens[ContT].Tipo){
@@ -994,7 +923,6 @@ function Exp(Actual){
 }
 
 function Operador(Actual){
-    console.log("Operador");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         switch(Tokens[ContT].Tipo){
@@ -1031,7 +959,6 @@ function Operador(Actual){
 }
 
 function PosibilidadMetodo(Actual){
-    console.log("PosibilidadMetodo");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Abrir_Parentesis"){
@@ -1046,7 +973,6 @@ function PosibilidadMetodo(Actual){
 }
 
 function ListaValores(Actual){
-    console.log("ListaValores");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         switch(Tokens[ContT].Tipo){
@@ -1071,7 +997,6 @@ function ListaValores(Actual){
 }
 
 function ListaValoresP(Actual){
-    console.log("ListaValoresP");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Coma"){
@@ -1086,7 +1011,6 @@ function ListaValoresP(Actual){
 }
 
 function SelectorID(Actual){
-    console.log("SelectorID");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Simbolo_Abrir_Parentesis"){
@@ -1115,7 +1039,6 @@ function SelectorID(Actual){
 }
 
 function ValoresReturn(Actual){
-    console.log("ValoresReturn");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo != "Simbolo_Punto_Y_Coma"){
@@ -1132,7 +1055,6 @@ function ValoresReturn(Actual){
 }
 
 function Prints(Actual){
-    console.log("Prints");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_println"){
@@ -1171,7 +1093,6 @@ function Prints(Actual){
 }
 
 function SentenciaIF(Actual, Traduccion){
-    console.log("SentenciaIF");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         Parea("Reservada_if", "", Actual, Traduccion)
@@ -1195,7 +1116,6 @@ function SentenciaIF(Actual, Traduccion){
 }
 
 function CaminosIF(Actual){
-    console.log("CaminosIF");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_else"){
@@ -1208,7 +1128,6 @@ function CaminosIF(Actual){
 }
 
 function OpcionElse(Actual){
-    console.log("OpcionElse");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_if"){
@@ -1224,7 +1143,6 @@ function OpcionElse(Actual){
 }
 
 function SentenciaFor(Actual){
-    console.log("SentenciaFor");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         Parea("Reservada_for", "", Actual, "for ")
@@ -1261,7 +1179,6 @@ function SentenciaFor(Actual){
 }
 
 function SentenciaWhile(Actual){
-    console.log("SentenciaWhile");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         Parea("Reservada_while", "", Actual, "while ")
@@ -1284,7 +1201,6 @@ function SentenciaWhile(Actual){
 }
 
 function SentenciaDo(Actual){
-    console.log("SentenciaDo");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         Parea("Reservada_do", "", Actual, "do")
@@ -1319,7 +1235,6 @@ function SentenciaDo(Actual){
 }
 
 function ListaDefiniones(Actual){
-    console.log("ListaDefinciones");
     QuitarComentarios(Actual)
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_public"){
@@ -1338,7 +1253,6 @@ function ListaDefiniones(Actual){
 }
 
 function SelectorDefincion(Actual){
-    console.log("SelectorDefinciones");
     QuitarComentarios(Actual);
     if(ContT < Tokens.length){
         if(Tokens[ContT].Tipo == "Reservada_void"){
@@ -1378,7 +1292,6 @@ function SelectorDefincion(Actual){
 
 function Parea(Esperado, Panico, Actual, Traduccion){
     QuitarComentarios()
-    console.log("Parea:" + Esperado + ", Viene" + Tokens[ContT].Tipo);
     if(ContT < Tokens.length && Tokens[ContT].Tipo == Esperado){
         NuevoNodoT(Actual, Tokens[ContT].Tipo, Traduccion);
         ContT++;
@@ -1409,7 +1322,6 @@ function ErrorSintactico(Esperado, Panico, Actual){
 }
 
 function QuitarComentarios(Actual){
-    console.log("QuitarComentario");
     if(ContT < Tokens.length){
         while((Tokens[ContT].Tipo == "Comentario_Unilinea" || Tokens[ContT].Tipo == "Comentario_Multilinea")){
             if(Tokens[ContT].Tipo == "Comentario_Unilinea"){
@@ -1422,5 +1334,3 @@ function QuitarComentarios(Actual){
         }
     }
 }
-
-Main();
