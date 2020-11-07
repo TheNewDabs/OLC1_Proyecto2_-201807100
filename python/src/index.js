@@ -755,7 +755,7 @@ function ListaInstrucciones(Actual){
             ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "ID"){
             Nuevo = NuevoNodo(Actual, "SelectorID");
-            Parea("ID", "", NuevoTokens[ContT].Lexema);
+            Parea("ID", "", Nuevo, Tokens[ContT].Lexema);
             SelectorID(Nuevo);
             ListaInstrucciones(NuevoNodo(Actual, "ListaInstrucciones"));
         }else if(Tokens[ContT].Tipo == "Reservada_return"){
@@ -1033,6 +1033,11 @@ function SelectorID(Actual){
                 ErrorSintactico("valor valido", "Simbolo_Punto_Y_Coma", Actual);
             }
             return;
+        }else if(Tokens[ContT].Tipo == "Simbolo_Adicion" || Tokens[ContT].Tipo == "Simbolo_Sustraccion"){
+            Parea(Tokens[ContT].Tipo, "", Actual, "+=1")
+            if(Parea("Simbolo_Punto_Y_Coma", "Simbolo_Punto_Y_Coma", Actual, ";")){
+                return
+            }
         }
     }
     ErrorSintactico("simbolo de abrir parentesis o simbolo igual", "Simbolo_Punto_Y_Coma")
